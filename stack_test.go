@@ -41,6 +41,72 @@ func TestFrameLine(t *testing.T) {
 	}
 }
 
+func TestFrameFuncation(t *testing.T) {
+	var tests = []struct {
+		Frame
+		want string
+	}{{
+		Frame(initpc),
+		"",
+	}, {
+		func() Frame {
+			var pc, _, _, _ = runtime.Caller(0)
+			return Frame(pc)
+		}(),
+		"",
+	}, {
+		func() Frame {
+			var pc, _, _, _ = runtime.Caller(1)
+			return Frame(pc)
+		}(),
+		"",
+	}, {
+		Frame(0), // invalid PC
+		"",
+	}}
+
+	for _, tt := range tests {
+		got := tt.Frame.Function()
+		want := tt.want
+		if want != got {
+			t.Errorf("Frame(%v): want: %v, got: %v", uintptr(tt.Frame), want, got)
+		}
+	}
+}
+
+func TestFramePackage(t *testing.T) {
+	var tests = []struct {
+		Frame
+		want string
+	}{{
+		Frame(initpc),
+		"",
+	}, {
+		func() Frame {
+			var pc, _, _, _ = runtime.Caller(0)
+			return Frame(pc)
+		}(),
+		"",
+	}, {
+		func() Frame {
+			var pc, _, _, _ = runtime.Caller(1)
+			return Frame(pc)
+		}(),
+		"",
+	}, {
+		Frame(0), // invalid PC
+		"",
+	}}
+
+	for _, tt := range tests {
+		got := tt.Frame.Package()
+		want := tt.want
+		if want != got {
+			t.Errorf("Frame(%v): want: %v, got: %v", uintptr(tt.Frame), want, got)
+		}
+	}
+}
+
 type X struct{}
 
 func (x X) val() Frame {
