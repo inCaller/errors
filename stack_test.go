@@ -41,28 +41,28 @@ func TestFrameLine(t *testing.T) {
 	}
 }
 
-func TestFrameFuncation(t *testing.T) {
+func TestFrameFunction(t *testing.T) {
 	var tests = []struct {
 		Frame
 		want string
 	}{{
 		Frame(initpc),
-		"",
+		"init",
 	}, {
 		func() Frame {
 			var pc, _, _, _ = runtime.Caller(0)
 			return Frame(pc)
 		}(),
-		"",
+		"TestFrameFunction.func1",
 	}, {
 		func() Frame {
 			var pc, _, _, _ = runtime.Caller(1)
 			return Frame(pc)
 		}(),
-		"",
+		"TestFrameFunction",
 	}, {
 		Frame(0), // invalid PC
-		"",
+		"unknown",
 	}}
 
 	for _, tt := range tests {
@@ -80,22 +80,22 @@ func TestFramePackage(t *testing.T) {
 		want string
 	}{{
 		Frame(initpc),
-		"",
+		"errors",
 	}, {
 		func() Frame {
 			var pc, _, _, _ = runtime.Caller(0)
 			return Frame(pc)
 		}(),
-		"",
+		"errors",
 	}, {
 		func() Frame {
 			var pc, _, _, _ = runtime.Caller(1)
 			return Frame(pc)
 		}(),
-		"",
+		"errors",
 	}, {
 		Frame(0), // invalid PC
-		"",
+		"unknown",
 	}}
 
 	for _, tt := range tests {

@@ -44,16 +44,26 @@ func (f Frame) Line() int {
 // for this Frame's pc.
 func (f Frame) Package() string {
 	name, _, _ := f.FunctionFileLine()
-	i := strings.Index(name, ".")
-	return name[:i]
+	if i := strings.LastIndex(name, "/"); i != -1 {
+		name = name[i+1:]
+		if i := strings.Index(name, "."); i != -1 {
+			return name[:i]
+		}
+	}
+	return name
 }
 
 // Function returns the function name of the function of
 // for this Frame's pc.
 func (f Frame) Function() string {
 	name, _, _ := f.FunctionFileLine()
-	i := strings.Index(name, ".")
-	return name[i+1:]
+	if i := strings.LastIndex(name, "/"); i != -1 {
+		name = name[i+1:]
+		if i := strings.Index(name, "."); i != -1 {
+			return name[i+1:]
+		}
+	}
+	return name
 }
 
 // Format formats the frame according to the fmt.Formatter interface.
