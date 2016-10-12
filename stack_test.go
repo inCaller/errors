@@ -33,7 +33,7 @@ func TestFrameLine(t *testing.T) {
 	}}
 
 	for _, tt := range tests {
-		got := tt.Frame.line()
+		got := tt.Frame.Line()
 		want := tt.want
 		if want != got {
 			t.Errorf("Frame(%v): want: %v, got: %v", uintptr(tt.Frame), want, got)
@@ -156,7 +156,7 @@ func TestTrimGOPATH(t *testing.T) {
 	}}
 
 	for i, tt := range tests {
-		pc := tt.Frame.pc()
+		pc := tt.Frame.PC()
 		fn := runtime.FuncForPC(pc)
 		file, _ := fn.FileLine(pc)
 		got := trimGOPATH(fn.Name(), file)

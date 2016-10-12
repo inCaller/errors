@@ -13,28 +13,47 @@ type Frame uintptr
 
 // pc returns the program counter for this frame;
 // multiple frames may have the same PC value.
-func (f Frame) pc() uintptr { return uintptr(f) - 1 }
+func (f Frame) PC() uintptr { return uintptr(f) - 1 }
 
-// file returns the full path to the file that contains the
-// function for this Frame's pc.
-func (f Frame) file() string {
-	fn := runtime.FuncForPC(f.pc())
+// FunctionFileLine returns the function name, full path, and line number
+// for the Frame's pc.
+func (f Frame) FunctionFileLine() (string, string, int) {
+	fn := runtime.FuncForPC(f.PC())
 	if fn == nil {
-		return "unknown"
+		return "unknown", "unknown", 0
 	}
-	file, _ := fn.FileLine(f.pc())
+	file, line := fn.FileLine(f.PC())
+	return fn.Name(), file, line
+}
+
+// File returns the full path to the file that contains the
+// function for this Frame's pc.
+func (f Frame) File() string {
+	_, file, _ := f.FunctionFileLine()
 	return file
 }
 
-// line returns the line number of source code of the
+// Line returns the line number of source code of the
 // function for this Frame's pc.
-func (f Frame) line() int {
-	fn := runtime.FuncForPC(f.pc())
-	if fn == nil {
-		return 0
-	}
-	_, line := fn.FileLine(f.pc())
+func (f Frame) Line() int {
+	_, _, line := f.FunctionFileLine()
 	return line
+}
+
+// Package returns the package name of the function of
+// for this Frame's pc.
+func (f Frame) Package() string {
+	name, _, _ := f.FunctionFileLine()
+	i := strings.Index(name, ".")
+	return name[:i]
+}
+
+// Function returns the function name of the function of
+// for this Frame's pc.
+func (f Frame) Function() string {
+	name, _, _ := f.FunctionFileLine()
+	i := strings.Index(name, ".")
+	return name[i+1:]
 }
 
 // Format formats the frame according to the fmt.Formatter interface.
@@ -53,7 +72,7 @@ func (f Frame) Format(s fmt.State, verb rune) {
 	case 's':
 		switch {
 		case s.Flag('+'):
-			pc := f.pc()
+			pc := f.PC()
 			fn := runtime.FuncForPC(pc)
 			if fn == nil {
 				io.WriteString(s, "unknown")
@@ -62,12 +81,12 @@ func (f Frame) Format(s fmt.State, verb rune) {
 				fmt.Fprintf(s, "%s\n\t%s", fn.Name(), file)
 			}
 		default:
-			io.WriteString(s, path.Base(f.file()))
+			io.WriteString(s, path.Base(f.File()))
 		}
 	case 'd':
-		fmt.Fprintf(s, "%d", f.line())
+		fmt.Fprintf(s, "%d", f.Line())
 	case 'n':
-		name := runtime.FuncForPC(f.pc()).Name()
+		name := runtime.FuncForPC(f.PC()).Name()
 		io.WriteString(s, funcname(name))
 	case 'v':
 		f.Format(s, 's')
