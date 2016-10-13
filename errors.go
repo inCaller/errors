@@ -220,13 +220,28 @@ func WithMessage(err error, message string) error {
 	}
 }
 
+// WithMessageAndKind annotates err with a new message and a kind.
+// If err is nil, WithMessageAndKind returns nil.
+func WithMessageAndKind(err error, message string, kind interface{}) error {
+	if err == nil {
+		return nil
+	}
+	return &withMessage{
+		cause: err,
+		msg:   message,
+		kind:  kind,
+	}
+}
+
 type withMessage struct {
 	cause error
 	msg   string
+	kind  interface{}
 }
 
-func (w *withMessage) Error() string { return w.msg + ": " + w.cause.Error() }
-func (w *withMessage) Cause() error  { return w.cause }
+func (w *withMessage) Error() string     { return w.msg + ": " + w.cause.Error() }
+func (w *withMessage) Cause() error      { return w.cause }
+func (w *withMessage) Kind() interface{} { return w.kind }
 
 func (w *withMessage) Format(s fmt.State, verb rune) {
 	switch verb {
@@ -266,4 +281,38 @@ func Cause(err error) error {
 		err = cause.Cause()
 	}
 	return err
+}
+
+// Kind returns the topmost underlying error kind, if possible.
+// An error value has a cause if it implements the following
+// interface:
+//
+//     type kindable interface {
+//            Kind() interface{}
+//     }
+//
+// If the error does not implement Kind, nil will be returned.
+// If the error is nil, nil will be returned without further
+// investigation.
+func Kind(err error) interface{} {
+	type kindable interface {
+		Kind() interface{}
+	}
+
+	type causer interface {
+		Cause() error
+	}
+
+	for err != nil {
+		kind, ok := err.(kindable)
+		if ok {
+			return kind.Kind()
+		}
+		cause, ok := err.(causer)
+		if !ok {
+			break
+		}
+		err = cause.Cause()
+	}
+	return nil
 }
