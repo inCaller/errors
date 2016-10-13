@@ -297,22 +297,19 @@ func Cause(err error) error {
 func Kind(err error) interface{} {
 	type kindable interface {
 		Kind() interface{}
-	}
-
-	type causer interface {
 		Cause() error
 	}
 
 	for err != nil {
 		kind, ok := err.(kindable)
 		if ok {
-			return kind.Kind()
-		}
-		cause, ok := err.(causer)
-		if !ok {
+			if kind.Kind() != nil {
+				return kind.Kind()
+			}
+		} else {
 			break
 		}
-		err = cause.Cause()
+		err = kind.Cause()
 	}
 	return nil
 }
